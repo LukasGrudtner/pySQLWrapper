@@ -167,11 +167,14 @@ def format_set_values(columns: list, values: list) -> str:
 
 def format_single_value(value: object) -> str:
     if isinstance(value, str):
-        return f'\'{value}\''
+        sanitized_value = value.replace("\'", "").replace('\"', '')
+        return f'\'{sanitized_value}\''
     elif isinstance(value, datetime.date) or isinstance(value, datetime.datetime):
         return f'\'{str(value)}\''
     elif isinstance(value, bool):
         return f'\'{str(value).lower()}\''
+    elif isinstance(value, list):
+        return f'ARRAY {value}'
     elif value is None:
         return 'null'
     return str(value)
