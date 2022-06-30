@@ -174,7 +174,10 @@ def format_single_value(value: object) -> str:
     elif isinstance(value, bool):
         return f'\'{str(value).lower()}\''
     elif isinstance(value, list):
-        return f'ARRAY {value}'
+        if len(value):
+            return f'ARRAY {value}'
+        else:
+            return 'null'
     elif value is None:
         return 'null'
     return str(value)
