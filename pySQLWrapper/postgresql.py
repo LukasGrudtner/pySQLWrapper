@@ -167,8 +167,7 @@ def format_set_values(columns: list, values: list) -> str:
 
 def format_single_value(value: object) -> str:
     if isinstance(value, str):
-        sanitized_value = value.replace("\'", "").replace('\"', '')
-        return f'\'{sanitized_value}\''
+        return f'\'{value}\''
     elif isinstance(value, datetime.date) or isinstance(value, datetime.datetime):
         return f'\'{str(value)}\''
     elif isinstance(value, bool):
