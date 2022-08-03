@@ -1,6 +1,5 @@
 from __future__ import annotations
 import datetime
-from enum import Enum
 
 
 class PostgreSQLWrapper:
@@ -21,8 +20,8 @@ class PostgreSQLWrapper:
 
         return self
 
-    def returning(self, column: Enum) -> PostgreSQLWrapper:
-        self._query += f' RETURNING {str(column)}'
+    def returning(self, column: str) -> PostgreSQLWrapper:
+        self._query += f' RETURNING {column}'
         return self
 
     def on_conflict(self, columns: list) -> PostgreSQLWrapper:
@@ -37,8 +36,26 @@ class PostgreSQLWrapper:
         self._query += f' DO UPDATE SET {column} = {format_single_value(value)}'
         return self
 
-    def select(self, columns: list, table: str) -> PostgreSQLWrapper:
-        self._query = f'SELECT {format_columns(columns)} FROM {table}'
+    def select(self, columns: list) -> PostgreSQLWrapper:
+        if self._query is not None:
+            self._query += f' SELECT {format_columns(columns)}'
+        else:
+            self._query = f'SELECT {format_columns(columns)}'
+        return self
+
+    def select_distinct(self, columns: list) -> PostgreSQLWrapper:
+        if self._query is not None:
+            self._query += f' SELECT DISTINCT {format_columns(columns)}'
+        else:
+            self._query = f'SELECT DISTINCT {format_columns(columns)}'
+        return self
+
+    def from_(self, source: str) -> PostgreSQLWrapper:
+        self._query += f' FROM ({source})'
+        return self
+
+    def as_(self, label: str) -> PostgreSQLWrapper:
+        self._query += f' AS {label}'
         return self
 
     def delete_from(self, table: str) -> PostgreSQLWrapper:
@@ -46,23 +63,53 @@ class PostgreSQLWrapper:
         return self
 
     def join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' JOIN {table}'
+        self._query += f' JOIN ({table})'
         return self
 
-    def left_join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' LEFT JOIN {table}'
+    def inner_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' INNER JOIN ({table})'
         return self
 
-    def on(self, column: str) -> PostgreSQLWrapper:
-        self._query += f' ON {column}'
+    def left_join(self, table: str, label: str = None) -> PostgreSQLWrapper:
+        self._query += f' LEFT JOIN ({table})'
+        if label:
+            self._query += f' {label}'
+        return self
+
+    def right_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' RIGHT JOIN ({table})'
+        return self
+
+    def full_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' FULL JOIN ({table})'
+        return self
+
+    def full_outer_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' FULL OUTER JOIN ({table})'
+        return self
+
+    def lateral_join(self, source: str) -> PostgreSQLWrapper:
+        self._query += f', LATERAL {source}'
+        return self
+
+    def union(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' UNION ({table})'
+        return self
+
+    def union_all(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' UNION ALL ({table})'
+        return self
+
+    def on(self, expression: str) -> PostgreSQLWrapper:
+        self._query += f' ON ({expression})'
         return self
 
     def eq(self, column: str) -> PostgreSQLWrapper:
         self._query += f' = {column}'
         return self
 
-    def using(self, column: str) -> PostgreSQLWrapper:
-        self._query += f' USING ({column})'
+    def using(self, columns: list) -> PostgreSQLWrapper:
+        self._query += f' USING ({", ".join(columns)})'
         return self
 
     def where(self, conditions: list) -> PostgreSQLWrapper:
@@ -96,48 +143,64 @@ class PostgreSQLWrapper:
         self._query += ' CASCADE'
         return self
 
-    def execute(self) -> str:
+    def with_(self, name: str, subquery: PostgreSQLWrapper) -> PostgreSQLWrapper:
+        self._query = f'WITH {name} AS ({subquery.build()})'
+        return self
+
+    def group_by(self, columns: list) -> PostgreSQLWrapper:
+        self._query += f'GROUP BY {format_columns(columns)}'
+        return self
+
+    def build(self) -> str:
         return self._query
 
     @staticmethod
-    def equals(column: Enum, value: object) -> str:
-        return f'{str(column)} = {format_single_value(value)}'
+    def equals(column: str, value: object) -> str:
+        return f'{column} = {format_single_value(value)}'
 
     @staticmethod
-    def not_equals(column: Enum, value: object) -> str:
-        return f'{str(column)} <> {format_single_value(value)}'
+    def equals_expression(column: str, value: object) -> str:
+        return f'{column} = {value}'
 
     @staticmethod
-    def greater_than(column: Enum, value: object) -> str:
-        return f'{str(column)} > {format_single_value(value)}'
+    def not_equals(column: str, value: object) -> str:
+        return f'{column} <> {format_single_value(value)}'
 
     @staticmethod
-    def greater_or_equal(column: Enum, value: object) -> str:
-        return f'{str(column)} >= {format_single_value(value)}'
+    def greater_than(column: str, value: object) -> str:
+        return f'{column} > {format_single_value(value)}'
 
     @staticmethod
-    def less_than(column: Enum, value: object) -> str:
-        return f'{str(column)} < {format_single_value(value)}'
+    def greater_or_equal(column: str, value: object) -> str:
+        return f'{column} >= {format_single_value(value)}'
 
     @staticmethod
-    def less_or_equal(column: Enum, value: object) -> str:
-        return f'{str(column)} <= {format_single_value(value)}'
+    def less_than(column: str, value: object) -> str:
+        return f'{column} < {format_single_value(value)}'
+
+    @staticmethod
+    def less_or_equal(column: str, value: object) -> str:
+        return f'{column} <= {format_single_value(value)}'
 
     @staticmethod
     def count(table: str, column: str) -> str:
         return f'count({table}.{column})'
 
     @staticmethod
-    def _in(column: Enum, values: list) -> str:
-        return f'{str(column)} IN ({format_values(values)})'
+    def _in(column: str, values: list) -> str:
+        return f'{column} IN ({format_values(values)})'
 
     @staticmethod
-    def is_null(column: [Enum, str]) -> str:
-        return f'{str(column)} IS NULL'
+    def as__(column: str, label: str) -> str:
+        return f'{column} AS {label}'
 
     @staticmethod
-    def is_not_null(column: [Enum, str]) -> str:
-        return f'{str(column)} IS NOT NULL'
+    def is_null(column: str) -> str:
+        return f'{column} IS NULL'
+
+    @staticmethod
+    def is_not_null(column: str) -> str:
+        return f'{column} IS NOT NULL'
 
 
 def format_conditions(conditions: list, separator: str) -> str:
