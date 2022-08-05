@@ -51,6 +51,10 @@ class PostgreSQLWrapper:
         return self
 
     def from_(self, source: str) -> PostgreSQLWrapper:
+        self._query += f' FROM {source}'
+        return self
+
+    def from_subquery(self, source: str) -> PostgreSQLWrapper:
         self._query += f' FROM ({source})'
         return self
 
@@ -63,28 +67,54 @@ class PostgreSQLWrapper:
         return self
 
     def join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' JOIN {table}'
+        return self
+
+    def join_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' JOIN ({table})'
         return self
 
     def inner_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' INNER JOIN {table}'
+        return self
+
+    def inner_join_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' INNER JOIN ({table})'
         return self
 
     def left_join(self, table: str, label: str = None) -> PostgreSQLWrapper:
+        self._query += f' LEFT JOIN {table}'
+        if label:
+            self._query += f' {label}'
+        return self
+
+    def left_join_subquery(self, table: str, label: str = None) -> PostgreSQLWrapper:
         self._query += f' LEFT JOIN ({table})'
         if label:
             self._query += f' {label}'
         return self
 
     def right_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' RIGHT JOIN {table}'
+        return self
+
+    def right_join_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' RIGHT JOIN ({table})'
         return self
 
     def full_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' FULL JOIN {table}'
+        return self
+
+    def full_join_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' FULL JOIN ({table})'
         return self
 
     def full_outer_join(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' FULL OUTER JOIN {table}'
+        return self
+
+    def full_outer_join_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' FULL OUTER JOIN ({table})'
         return self
 
@@ -93,10 +123,18 @@ class PostgreSQLWrapper:
         return self
 
     def union(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' UNION {table}'
+        return self
+
+    def union_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' UNION ({table})'
         return self
 
     def union_all(self, table: str) -> PostgreSQLWrapper:
+        self._query += f' UNION ALL {table}'
+        return self
+
+    def union_all_subquery(self, table: str) -> PostgreSQLWrapper:
         self._query += f' UNION ALL ({table})'
         return self
 
