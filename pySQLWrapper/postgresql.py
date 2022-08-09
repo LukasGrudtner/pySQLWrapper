@@ -50,12 +50,8 @@ class PostgreSQLWrapper:
             self._query = f'SELECT DISTINCT {format_columns(columns)}'
         return self
 
-    def from_(self, source: str) -> PostgreSQLWrapper:
-        self._query += f' FROM {source}'
-        return self
-
-    def from_subquery(self, source: str) -> PostgreSQLWrapper:
-        self._query += f' FROM ({source})'
+    def from_(self, source: [PostgreSQLWrapper, str]) -> PostgreSQLWrapper:
+        self._query += f' FROM {format_source(source)}'
         return self
 
     def as_(self, label: str) -> PostgreSQLWrapper:
@@ -66,76 +62,58 @@ class PostgreSQLWrapper:
         self._query = f'DELETE FROM {table}'
         return self
 
-    def join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' JOIN {table}'
-        return self
-
-    def join_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' JOIN ({table})'
-        return self
-
-    def inner_join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' INNER JOIN {table}'
-        return self
-
-    def inner_join_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' INNER JOIN ({table})'
-        return self
-
-    def left_join(self, table: str, label: str = None) -> PostgreSQLWrapper:
-        self._query += f' LEFT JOIN {table}'
+    def join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' JOIN {format_source(source)}'
         if label:
             self._query += f' {label}'
         return self
 
-    def left_join_subquery(self, table: str, label: str = None) -> PostgreSQLWrapper:
-        self._query += f' LEFT JOIN ({table})'
+    def inner_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' INNER JOIN {format_source(source)}'
         if label:
             self._query += f' {label}'
         return self
 
-    def right_join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' RIGHT JOIN {table}'
+    def left_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' LEFT JOIN {format_source(source)}'
+        if label:
+            self._query += f' {label}'
         return self
 
-    def right_join_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' RIGHT JOIN ({table})'
+    def right_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' RIGHT JOIN {format_source(source)}'
+        if label:
+            self._query += f' {label}'
         return self
 
-    def full_join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' FULL JOIN {table}'
+    def full_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' FULL JOIN {format_source(source)}'
+        if label:
+            self._query += f' {label}'
         return self
 
-    def full_join_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' FULL JOIN ({table})'
+    def full_outer_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' FULL OUTER JOIN {format_source(source)}'
+        if label:
+            self._query += f' {label}'
         return self
 
-    def full_outer_join(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' FULL OUTER JOIN {table}'
-        return self
-
-    def full_outer_join_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' FULL OUTER JOIN ({table})'
+    def cross_join(self, source: [PostgreSQLWrapper, str], label: str = None) -> PostgreSQLWrapper:
+        self._query += f' CROSS JOIN {format_source(source)}'
+        if label:
+            self._query += f' {label}'
         return self
 
     def lateral_join(self, source: str) -> PostgreSQLWrapper:
         self._query += f', LATERAL {source}'
         return self
 
-    def union(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' UNION {table}'
+    def union(self, source: [PostgreSQLWrapper, str]) -> PostgreSQLWrapper:
+        self._query += f' UNION {format_source(source)}'
         return self
 
-    def union_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' UNION ({table})'
-        return self
-
-    def union_all(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' UNION ALL {table}'
-        return self
-
-    def union_all_subquery(self, table: str) -> PostgreSQLWrapper:
-        self._query += f' UNION ALL ({table})'
+    def union_all(self, source: [PostgreSQLWrapper, str]) -> PostgreSQLWrapper:
+        self._query += f' UNION ALL {format_source(source)}'
         return self
 
     def on(self, expression: str) -> PostgreSQLWrapper:
@@ -281,3 +259,12 @@ def format_single_value(value: object) -> str:
     elif value is None:
         return 'null'
     return str(value)
+
+
+def format_source(source: [PostgreSQLWrapper, str]) -> str:
+    if isinstance(source, PostgreSQLWrapper):
+        return f'({source.build()})'
+    elif isinstance(source, str):
+        return source
+    else:
+        raise Exception('Source must be of type PostgreSQLWrapper or str!')
