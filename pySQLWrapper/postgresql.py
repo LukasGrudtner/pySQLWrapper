@@ -32,8 +32,8 @@ class PostgreSQLWrapper:
         self._query += ' DO NOTHING'
         return self
 
-    def do_update(self, column: str, value: object) -> PostgreSQLWrapper:
-        self._query += f' DO UPDATE SET {column} = {format_single_value(value)}'
+    def do_update(self, columns: list, values: list) -> PostgreSQLWrapper:
+        self._query += f' DO UPDATE SET {", ".join(map(PostgreSQLWrapper.equals, columns, values))}'
         return self
 
     def select(self, columns: list) -> PostgreSQLWrapper:
@@ -168,7 +168,7 @@ class PostgreSQLWrapper:
         return self
 
     def build(self) -> str:
-        return self._query
+        return self._query + ';'
 
     @staticmethod
     def equals(column: str, value: object) -> str:
