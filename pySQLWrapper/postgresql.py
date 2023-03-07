@@ -247,6 +247,7 @@ def format_set_values(columns: list, values: list) -> str:
 
 def format_single_value(value: object) -> str:
     if isinstance(value, str):
+        value = value.replace("'", "''")
         return f'\'{value}\''
     elif isinstance(value, datetime.date) or isinstance(value, datetime.datetime) or isinstance(value, Enum):
         return f'\'{str(value)}\''
