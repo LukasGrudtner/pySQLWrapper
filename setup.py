@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'pySQLWrapper',         # How you named your package folder (MyLib)
   packages = ['pySQLWrapper'],   # Chose the same as "name"
-  version = '0.11',      # Start with a small number and increase it with every change you make
+  version = '0.12',      # Start with a small number and increase it with every change you make
   license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
   description = 'A SQL wrapper library to make easy to build SQL interfaces',   # Give a short description about your library
   author = 'Lukas Grüdtner',                   # Type in your name
